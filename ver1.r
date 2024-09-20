@@ -13,7 +13,14 @@ rm(list=ls())
 process_data <- function(files, update_progress) {
   update_progress(0.1, "Reading CSV files")
   
-  df_list <- map_df(files$datapath, ~read_csv(.x) %>% mutate(file = basename(.x)))
+  df_list <- map_df(files$datapath, function(file_path) {
+    df <- read_csv(file_path)
+    file_name <- basename(file_path)
+    df$file <- file_name
+    # Extract position from filename (13th character from the end, including .csv)
+    df$position <- as.numeric(substr(file_name, nchar(file_name) - 12, nchar(file_name) - 12))
+    df
+  })
   
   df_list <- df_list %>%
     mutate(cell = str_sub(`CELL ID`, -3, -1)) %>%
